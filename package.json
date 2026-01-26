@@ -1,0 +1,22 @@
+{
+  "name": "randompic",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "build": "bun index.ts"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/sharp": "latest"
+  },
+  "dependencies": {
+    "imagesloaded": "^5.0.0",
+    "lozad": "^1.16.0",
+    "masonry-layout": "^4.2.2",
+    "sharp": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  }
+}
