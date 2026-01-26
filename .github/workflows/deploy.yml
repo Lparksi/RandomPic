@@ -39,14 +39,27 @@ jobs:
 
       - name: Prepare Output
         run: |
-          cp wrangler.jsonc dest/
-          sed -i 's|"./dest"|"."|' dest/wrangler.jsonc
+          # Create a staging directory
+          mkdir staging
+          
+          # Move built assets to staging/public
+          mv dest staging/public
+          
+          # Copy wrangler config to root of staging
+          cp wrangler.jsonc staging/
+          
+          # Update wrangler.jsonc to point to ./public
+          # We don't need sed here if we just update the file content or use sed to replace ./dest with ./public
+          sed -i 's|"./dest"|"./public"|' staging/wrangler.jsonc
+          
+          # Verify structure
+          ls -R staging/
 
       - name: Deploy to dest branch
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./dest
+          publish_dir: ./staging
           publish_branch: dest
           user_name: 'github-actions[bot]'
           user_email: 'github-actions[bot]@users.noreply.github.com'
