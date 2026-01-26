@@ -40,6 +40,7 @@ jobs:
       - name: Prepare Output
         run: |
           cp wrangler.jsonc dest/
+          sed -i 's|"./dest"|"."|' dest/wrangler.jsonc
 
       - name: Deploy to dest branch
         uses: peaceiris/actions-gh-pages@v3
