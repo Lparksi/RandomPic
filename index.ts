@@ -380,6 +380,14 @@ async function main() {
     await generateGalleryHtml(manifest);
     await generateIndexHtml();
 
+    // Generate .wranglerignore to prevent uploading git config when deploying from dest branch
+    const ignoreContent = `.git
+.github
+node_modules
+.DS_Store
+`;
+    await Bun.write(join(DEST_DIR, '.wranglerignore'), ignoreContent);
+
     console.log('Build complete!');
     console.log('Manifest:', manifest);
 }
