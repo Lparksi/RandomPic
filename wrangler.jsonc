@@ -1,0 +1,10 @@
+{
+    "name": "randompic",
+    "compatibility_date": "2026-01-26",
+    "assets": {
+        "directory": "./dest"
+    },
+    "observability": {
+        "enabled": false
+    }
+}
