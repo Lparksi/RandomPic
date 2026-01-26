@@ -2,7 +2,7 @@
     "name": "randompic",
     "compatibility_date": "2026-01-26",
     "assets": {
-        "directory": "."
+        "directory": "./public"
     },
     "observability": {
         "enabled": false
