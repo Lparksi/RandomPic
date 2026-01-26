@@ -208,24 +208,29 @@ async function generateClientJS(manifest: Manifest) {
 async function generateGalleryHtml(manifest: Manifest) {
     const types = ['h', 'v'] as const;
     let gallerySections = '';
-
-    let navButtons = `<button class="filter-btn active" onclick="filterGallery('all')">All</button>`;
+    let navButtons = `<button class="filter-btn active" onclick="filterGallery('all')">全部</button>`;
 
     for (const type of types) {
         const count = manifest[type];
         if (count === 0) continue;
 
-        navButtons += `<button class="filter-btn" onclick="filterGallery('${type}')">${type.toUpperCase()}</button>`;
+        const label = type === 'h' ? '横屏' : '竖屏';
+        navButtons += `<button class="filter-btn" onclick="filterGallery('${type}')">${label}</button>`;
 
         let itemsHtml = '';
         for (let i = 0; i < count; i++) {
             const url = (DOMAIN ? `${DOMAIN}/` : '') + `${type}/${i}.webp`;
-            itemsHtml += `<div class="grid-item"><img class="lozad" data-src="${url}" alt="${type}-${i}"></div>\n`;
+            itemsHtml += `
+            <div class="grid-item" onclick="openLightbox('${url}')">
+                <div class="img-wrapper">
+                    <img class="lozad" data-src="${url}" alt="${type}-${i}">
+                </div>
+            </div>`;
         }
 
         gallerySections += `
         <section id="section-${type}" class="gallery-section">
-            <h2>Category: ${type.toUpperCase()}</h2>
+            <h2 class="section-title"><span>#</span> ${label}图片</h2>
             <div class="grid" id="grid-${type}">
                 <div class="grid-sizer"></div>
                 ${itemsHtml}
@@ -235,40 +240,154 @@ async function generateGalleryHtml(manifest: Manifest) {
     }
 
     const htmlContent = `<!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RandomPic Gallery</title>
+    <title>RandomPic Gallery | 精选画廊</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
-        body { font-family: -apple-system, system-ui, sans-serif; margin: 0; padding: 20px; background: #f4f4f5; }
-        h1 { text-align: center; color: #18181b; }
-        .filter-nav { text-align: center; margin: 2rem 0; }
-        .filter-btn {
-            background: #fff; border: 1px solid #e4e4e7; padding: 0.5rem 1rem; margin: 0 0.25rem;
-            border-radius: 0.5rem; cursor: pointer; transition: all 0.2s; color: #52525b; font-weight: 500;
+        :root {
+            --bg: #09090b;
+            --fg: #fafafa;
+            --accent: #3b82f6;
+            --card-bg: #18181b;
+            --border: rgba(255, 255, 255, 0.1);
+            --text-muted: #a1a1aa;
         }
-        .filter-btn:hover { background: #fafafa; border-color: #d4d4d8; }
-        .filter-btn.active { background: #2563eb; color: white; border-color: #2563eb; }
+
+        * { box-sizing: border-box; }
+        body { 
+            font-family: 'Outfit', -apple-system, system-ui, sans-serif; 
+            margin: 0; 
+            padding: 0; 
+            background: var(--bg); 
+            color: var(--fg);
+            line-height: 1.5;
+        }
+
+        header {
+            padding: 4rem 2rem 2rem;
+            text-align: center;
+            background: radial-gradient(circle at top center, rgba(59, 130, 246, 0.15), transparent);
+        }
+
+        h1 { 
+            font-size: 3rem; 
+            margin: 0; 
+            font-weight: 600; 
+            letter-spacing: -0.05em;
+            background: linear-gradient(to bottom, #fff, #a1a1aa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle { color: var(--text-muted); margin-top: 0.5rem; font-size: 1.1rem; }
+
+        .filter-nav { 
+            position: sticky;
+            top: 1rem;
+            z-index: 50;
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin: 2rem 0;
+            padding: 0.5rem;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            background: rgba(9, 9, 11, 0.7);
+            width: fit-content;
+            margin-left: auto;
+            margin-right: auto;
+            border-radius: 1rem;
+            border: 1px solid var(--border);
+        }
+
+        .filter-btn {
+            background: transparent; border: none; padding: 0.6rem 1.2rem;
+            border-radius: 0.75rem; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            color: var(--text-muted); font-weight: 500; font-size: 0.95rem;
+        }
+        .filter-btn:hover { color: var(--fg); background: rgba(255,255,255,0.05); }
+        .filter-btn.active { background: var(--accent); color: white; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); }
         
-        .gallery-section h2 { color: #3f3f46; border-bottom: 2px solid #e4e4e7; padding-bottom: 0.5rem; font-size: 1.25rem; }
+        main { padding: 0 2rem 4rem; max-width: 1400px; margin: 0 auto; }
+
+        .gallery-section { margin-bottom: 4rem; animation: fadeIn 0.8s ease-out; }
+        .section-title { 
+            font-size: 1.5rem; 
+            margin-bottom: 2rem; 
+            display: flex; 
+            align-items: center; 
+            gap: 0.75rem;
+            font-weight: 600;
+        }
+        .section-title span { color: var(--accent); opacity: 0.8; }
         
         .grid { margin: 0 auto; }
-        .grid-sizer, .grid-item { width: 23%; margin-bottom: 1rem; }
-        .grid-item { float: left; border-radius: 0.5rem; overflow: hidden; box-shadow: 0 1px 2px rgba(0,0,0,0.1); background: #e4e4e7; min-height: 200px; transition: background 0.3s; }
-        .grid-item.content-loaded { min-height: 0; background: #fff; }
-        .grid-item img { display: block; width: 100%; height: auto; opacity: 0; transition: opacity 0.3s ease-in; }
-        .grid-item img[data-loaded="true"] { opacity: 1; }
+        .grid-sizer, .grid-item { width: calc(25% - 12px); margin-bottom: 16px; }
+        
+        .grid-item { 
+            cursor: zoom-in;
+            border-radius: 1rem; 
+            overflow: hidden; 
+            background: var(--card-bg); 
+            border: 1px solid var(--border);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
 
-        @media (max-width: 1024px) { .grid-sizer, .grid-item { width: 31%; } }
-        @media (max-width: 768px) { .grid-sizer, .grid-item { width: 48%; } }
-        @media (max-width: 480px) { .grid-sizer, .grid-item { width: 100%; } }
+        .grid-item:hover {
+            transform: translateY(-4px);
+            border-color: rgba(255,255,255,0.2);
+            box-shadow: 0 12px 24px -8px rgba(0,0,0,0.5);
+        }
+
+        .img-wrapper { width: 100%; position: relative; overflow: hidden; }
+        .grid-item img { 
+            display: block; 
+            width: 100%; 
+            height: auto; 
+            opacity: 0; 
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out; 
+            transform: scale(1.05);
+        }
+        .grid-item img[data-loaded="true"] { opacity: 1; transform: scale(1); }
+
+        /* Lightbox */
+        #lightbox {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.95);
+            backdrop-filter: blur(10px);
+            display: none; justify-content: center; align-items: center;
+            z-index: 1000; cursor: zoom-out;
+            animation: fadeIn 0.3s ease-out;
+        }
+        #lightbox img { max-width: 90%; max-height: 90%; border-radius: 0.5rem; object-fit: contain; box-shadow: 0 0 40px rgba(0,0,0,0.5); }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        @media (max-width: 1024px) { .grid-sizer, .grid-item { width: calc(33.333% - 11px); } h1 { font-size: 2.5rem; } }
+        @media (max-width: 768px) { .grid-sizer, .grid-item { width: calc(50% - 8px); } .filter-nav { width: 90%; } }
+        @media (max-width: 480px) { .grid-sizer, .grid-item { width: 100%; } main { padding: 0 1rem; } }
     </style>
 </head>
 <body>
-    <h1>Static Gallery</h1>
+    <header>
+        <h1>RandomPic Gallery</h1>
+        <p class="subtitle">随机美图库 - 精选高清图集</p>
+    </header>
+
     <div class="filter-nav">${navButtons}</div>
-    ${gallerySections}
+    
+    <main>
+        ${gallerySections}
+    </main>
+
+    <div id="lightbox" onclick="closeLightbox()">
+        <img id="lightbox-img" src="" alt="Preview">
+    </div>
 
     <script src="lib/masonry.pkgd.min.js"></script>
     <script src="lib/imagesloaded.pkgd.min.js"></script>
@@ -278,33 +397,65 @@ async function generateGalleryHtml(manifest: Manifest) {
         document.addEventListener('DOMContentLoaded', function() {
             var grids = document.querySelectorAll('.grid');
             grids.forEach(function(grid) {
-                var msnry = new Masonry(grid, { itemSelector: '.grid-item', columnWidth: '.grid-sizer', percentPosition: true, gutter: 15 });
+                var msnry = new Masonry(grid, { 
+                    itemSelector: '.grid-item', 
+                    columnWidth: '.grid-sizer', 
+                    percentPosition: true, 
+                    gutter: 16 
+                });
+                
+                imagesLoaded(grid).on('progress', function() {
+                    msnry.layout();
+                });
+
                 masonryInstances.push(msnry);
             });
 
             const observer = lozad('.lozad', {
-                rootMargin: '200px 0px',
+                rootMargin: '300px 0px',
                 loaded: function(el) {
                     el.onload = function() {
                         el.setAttribute('data-loaded', true);
-                        el.closest('.grid-item').classList.add('content-loaded');
                         masonryInstances.forEach(m => m.layout());
                     }
                     if (el.complete && el.naturalHeight !== 0) el.onload();
                 }
             });
             observer.observe();
-            setTimeout(() => { masonryInstances.forEach(m => m.layout()); }, 500);
         });
 
         function filterGallery(type) {
-            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-            event.target.classList.add('active');
+            const btns = document.querySelectorAll('.filter-btn');
+            btns.forEach(b => b.classList.remove('active'));
+            const activeBtn = Array.from(btns).find(b => b.getAttribute('onclick').includes("'"+type+"'"));
+            if(activeBtn) activeBtn.classList.add('active');
+
             document.querySelectorAll('.gallery-section').forEach(s => {
                 s.style.display = (type === 'all' || s.id === 'section-' + type) ? 'block' : 'none';
             });
-            setTimeout(() => { masonryInstances.forEach(m => m.layout()); }, 50);
+            
+            // Refresh masonry
+            setTimeout(() => { masonryInstances.forEach(m => m.layout()); }, 100);
         }
+
+        function openLightbox(url) {
+            const lb = document.getElementById('lightbox');
+            const lbImg = document.getElementById('lightbox-img');
+            lbImg.src = url;
+            lb.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeLightbox() {
+            const lb = document.getElementById('lightbox');
+            lb.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+
+        // Close on escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeLightbox();
+        });
     </script>
 </body>
 </html>`;
