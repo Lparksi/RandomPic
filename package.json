@@ -4,11 +4,13 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "build": "bun index.ts"
+    "build": "bun index.ts",
+    "deploy": "bun run build && wrangler deploy"
   },
   "devDependencies": {
     "@types/bun": "latest",
-    "@types/sharp": "latest"
+    "@types/sharp": "latest",
+    "wrangler": "^4.60.0"
   },
   "dependencies": {
     "imagesloaded": "^5.0.0",

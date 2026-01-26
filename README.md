@@ -31,6 +31,23 @@ A powerful static random image API generator built with Bun.
    DOMAIN="https://my-cdn.com" bun run build
    ```
 
+## Deployment
+
+### Cloudflare Workers (Static Assets)
+
+This project is configured for Cloudflare Workers with Static Assets.
+
+1. **Login to Cloudflare**:
+   ```bash
+   bun x wrangler login
+   ```
+
+2. **Deploy**:
+   ```bash
+   bun run deploy
+   ```
+   This command will build the project and deploy the `dest/` folder to Cloudflare's global network.
+
 ## Output (`dest/`)
 
 The build command generates a complete static site in `dest/`:
