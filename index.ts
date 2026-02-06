@@ -6,7 +6,10 @@ import sharp from 'sharp';
 const SOURCE_DIR = 'pics';
 const DEST_DIR = 'dest';
 const VALID_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.webp', '.gif', '.avif', '.tiff'];
-const DOMAIN = process.env.DOMAIN || ''; // Allow setting domain via env
+const envDomain = process.env.DOMAIN || '';
+let tempDomain = envDomain && !envDomain.startsWith('http') ? `https://${envDomain}` : envDomain;
+if (tempDomain.endsWith('/')) tempDomain = tempDomain.slice(0, -1);
+const DOMAIN = tempDomain;
 
 interface Manifest {
     h: number;
